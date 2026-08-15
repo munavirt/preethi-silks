@@ -16,9 +16,7 @@ import textureSilk from "@/assets/texture-silk.jpg";
 import { ZariBorderLine, BotanicalSpray, ThreadLine, BorderMotif } from "./Ornaments";
 import { TextileWeave, HandPaintedDot } from "./CollectionArtwork";
 
-import ScrollToPlugin from "gsap/ScrollToPlugin";
-
-gsap.registerPlugin(ScrollTrigger, Observer, ScrollToPlugin);
+gsap.registerPlugin(ScrollTrigger, Observer);
 
 const collections = [
   { id: "01", name: "SAREES", desc: "Silk, craft & occasion", image: textureSilk, art: ZariBorderLine },
@@ -32,138 +30,145 @@ export function CollectionStage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const currentIndex = { current: 0 };
-    const isTransitioning = { current: false };
-    const isCollectionActive = { current: false };
-    
-    let observer: globalThis.Observer | null = null;
-    let scrollTrigger: globalThis.ScrollTrigger | null = null;
-
     let ctx = gsap.context(() => {
-      
-      // 1. Initial State
-      gsap.set(".panel:not(.panel-0)", { autoAlpha: 0, pointerEvents: "none" });
-      gsap.set(".panel-0", { autoAlpha: 1, pointerEvents: "auto" });
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const duration = prefersReducedMotion ? 0 : 0.8;
+      const ease = "power3.inOut";
 
-      // 2. Transition Function
-      function goToPanel(nextIndex: number, direction: 1 | -1) {
-        if (nextIndex < 0 || nextIndex >= collections.length) return;
-        if (isTransitioning.current) return;
-        
-        isTransitioning.current = true;
-        
-        const outgoing = `.panel-${currentIndex.current}`;
-        const incoming = `.panel-${nextIndex}`;
-        
+      let currentIndex = 0;
+      let isTransitioning = false;
+      let isCollectionActive = false;
+
+      // Set initial states for panels > 0
+      gsap.set(".panel:not(.panel-0)", { autoAlpha: 0 });
+
+      function gotoIndex(index: number, direction: 1 | -1) {
+        console.log("[Collections] gotoIndex", index, "direction", direction);
+        if (index < 0 || index >= collections.length) return;
+        isTransitioning = true;
+
+        const outgoing = `.panel-${currentIndex}`;
+        const incoming = `.panel-${index}`;
+
         const tl = gsap.timeline({
           onComplete: () => {
-            currentIndex.current = nextIndex;
-            isTransitioning.current = false;
+            console.log("[Collections] timeline onComplete");
+            currentIndex = index;
+            isTransitioning = false;
           }
         });
-        
-        // Z-Index handling
-        gsap.set(incoming, { zIndex: 20 });
-        gsap.set(outgoing, { zIndex: 10 });
-        
+
         if (prefersReducedMotion) {
-          tl.to(outgoing, { autoAlpha: 0, pointerEvents: "none", duration: 0 })
-            .to(incoming, { autoAlpha: 1, pointerEvents: "auto", duration: 0 });
+          tl.to(outgoing, { autoAlpha: 0, duration: 0 })
+            .to(incoming, { autoAlpha: 1, duration: 0 });
         } else {
-          const yOffset = direction === 1 ? 50 : -50;
-          const duration = 0.8;
-          const ease = "power3.inOut";
+          // Horizontal animation logic based on scroll direction
+          // direction 1 (Down): 01(R)->02(L). Everything moves Right to Left.
+          // direction -1 (Up): 02(L)->01(R). Everything moves Left to Right.
           
-          tl.to(`${outgoing} .image-wrap`, { yPercent: -direction * 5, scale: 0.95, opacity: 0, duration, ease }, 0)
-            .to(`${outgoing} .text-content, ${outgoing} .mobile-cta`, { y: -yOffset, opacity: 0, duration: duration * 0.8, ease }, 0)
-            .set(outgoing, { autoAlpha: 0, pointerEvents: "none" }, duration)
-            
-            .set(incoming, { autoAlpha: 1, pointerEvents: "auto" }, 0)
-            .fromTo(`${incoming} .image-wrap`, 
-              { yPercent: direction * 5, scale: 1.05, clipPath: direction === 1 ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)", opacity: 0 },
-              { yPercent: 0, scale: 1, clipPath: "inset(0% 0 0 0)", opacity: 1, duration, ease },
+          const imgTravelOut = direction === 1 ? "-100vw" : "100vw";
+          const imgTravelIn = direction === 1 ? "100vw" : "-100vw";
+          
+          // Text moves less to emphasize the image as the major visual motion
+          const textTravelOut = direction === 1 ? "-15vw" : "15vw";
+          const textTravelIn = direction === 1 ? "15vw" : "-15vw";
+
+          // Outgoing Panel
+          tl.to(`${outgoing} .image-wrap`, { x: imgTravelOut, scale: 0.95, opacity: 0, duration, ease }, 0)
+            .to(`${outgoing} .text-content, ${outgoing} .mobile-cta`, { x: textTravelOut, opacity: 0, duration: duration * 0.8, ease }, 0)
+            .set(outgoing, { autoAlpha: 0 }, duration);
+
+          // Incoming Panel
+          tl.set(incoming, { autoAlpha: 1 }, 0)
+            .fromTo(`${incoming} .image-wrap`,
+              { x: imgTravelIn, scale: 1.05, clipPath: direction === 1 ? "inset(0% 0% 0% 100%)" : "inset(0% 100% 0% 0%)", opacity: 0 },
+              { x: "0vw", scale: 1, clipPath: "inset(0% 0% 0% 0%)", opacity: 1, duration, ease },
               0.1
             )
             .fromTo(`${incoming} .text-content, ${incoming} .mobile-cta`,
-              { y: yOffset, opacity: 0 },
-              { y: 0, opacity: 1, duration: duration * 0.8, ease },
+              { x: textTravelIn, opacity: 0 },
+              { x: "0vw", opacity: 1, duration: duration * 0.8, ease },
               0.2
             );
         }
       }
 
-      function releaseDownwardScroll() {
-        isCollectionActive.current = false;
-        if (observer) observer.disable();
-        if (scrollTrigger) {
-          gsap.to(window, { scrollTo: scrollTrigger.end, duration: 0.6, ease: "power2.inOut" });
-        }
-      }
+      const handleIntent = (direction: 1 | -1) => {
+        console.log("[Collections] handleIntent", direction, "currentIndex", currentIndex, "isTransitioning", isTransitioning, "isActive", isCollectionActive);
+        if (!isCollectionActive) return;
+        if (isTransitioning) return;
 
-      function releaseUpwardScroll() {
-        isCollectionActive.current = false;
-        if (observer) observer.disable();
-        if (scrollTrigger) {
-          gsap.to(window, { scrollTo: scrollTrigger.start, duration: 0.6, ease: "power2.inOut" });
+        if (direction === 1) { // Down
+          if (currentIndex < collections.length - 1) {
+            gotoIndex(currentIndex + 1, 1);
+          } else {
+            // At last slide. Release the trap to allow scrolling down natively.
+            console.log("[Collections] Releasing downward scroll");
+            isCollectionActive = false;
+            intentObserver.disable();
+          }
+        } else { // Up
+          if (currentIndex > 0) {
+            gotoIndex(currentIndex - 1, -1);
+          } else {
+            // At first slide. Release the trap to allow scrolling up natively.
+            console.log("[Collections] Releasing upward scroll");
+            isCollectionActive = false;
+            intentObserver.disable();
+          }
         }
-      }
+      };
 
-      function requestNext() {
-        if (!isCollectionActive.current) return;
-        if (isTransitioning.current) return;
-        
-        if (currentIndex.current < collections.length - 1) {
-          goToPanel(currentIndex.current + 1, 1);
-        } else {
-          releaseDownwardScroll();
-        }
-      }
-
-      function requestPrevious() {
-        if (!isCollectionActive.current) return;
-        if (isTransitioning.current) return;
-        
-        if (currentIndex.current > 0) {
-          goToPanel(currentIndex.current - 1, -1);
-        } else {
-          releaseUpwardScroll();
-        }
-      }
-
-      observer = Observer.create({
+      // Observer to detect meaningful scroll intent without scrubbing
+      const intentObserver = Observer.create({
         target: window,
         type: "wheel,touch",
-        tolerance: 30,
-        preventDefault: true,
-        onDown: () => requestNext(), 
-        onUp: () => requestPrevious()
+        tolerance: 30, // Prevents tiny trackpad movements from triggering a slide
+        preventDefault: true, // Traps the scroll while inside the carousel
+        onUp: () => {
+          console.log("[Collections] Observer onUp (Gesture UP)");
+          handleIntent(-1);
+        },
+        onDown: () => {
+          console.log("[Collections] Observer onDown (Gesture DOWN)");
+          handleIntent(1);
+        }
       });
-      observer.disable();
 
-      scrollTrigger = ScrollTrigger.create({
+      // Disabled initially; we only enable it when the section is perfectly pinned.
+      intentObserver.disable();
+
+      // Pin the section to the viewport.
+      ScrollTrigger.create({
         trigger: containerRef.current,
         pin: ".stage-pin",
         start: "top top",
-        end: () => `+=${window.innerHeight * (collections.length - 0.5)}`,
-        onEnter: () => {
-          isCollectionActive.current = true;
-          if (observer) observer.enable();
+        end: () =>
+          `+=${window.innerHeight * collections.length}`,
+        onEnter: (self) => {
+          console.log("[Collections] ScrollTrigger onEnter");
+          isCollectionActive = true;
+          intentObserver.enable();
+          console.log("[Collections] observer enabled");
         },
-        onEnterBack: () => {
-          isCollectionActive.current = true;
-          if (observer) observer.enable();
+        onEnterBack: (self) => {
+          console.log("[Collections] ScrollTrigger onEnterBack");
+          isCollectionActive = true;
+          intentObserver.enable();
+          console.log("[Collections] observer enabled");
         },
         onLeave: () => {
-          isCollectionActive.current = false;
-          if (observer) observer.disable();
+          console.log("[Collections] ScrollTrigger onLeave");
+          isCollectionActive = false;
+          intentObserver.disable();
         },
         onLeaveBack: () => {
-          isCollectionActive.current = false;
-          if (observer) observer.disable();
+          console.log("[Collections] ScrollTrigger onLeaveBack");
+          isCollectionActive = false;
+          intentObserver.disable();
         }
       });
+
     }, containerRef);
 
     return () => ctx.revert();
@@ -181,7 +186,7 @@ export function CollectionStage() {
             <div className="flex flex-col md:grid md:grid-cols-[1fr_1.1fr] gap-6 md:gap-12 lg:gap-20 items-center w-full h-full max-w-[1200px] relative z-10 mx-auto">
 
               {/* ─── TEXT CONTENT ─── */}
-              <div className="text-content flex flex-col justify-start md:justify-center w-full shrink-0 text-center md:text-left mt-2 md:mt-0">
+              <div className={`text-content flex flex-col justify-start md:justify-center w-full shrink-0 text-center ${i % 2 === 0 ? "md:text-left md:items-start md:order-1" : "md:text-right md:items-end md:order-2"} mt-2 md:mt-0`}>
                 <p className="eyebrow text-primary tracking-[0.3em]">{c.id} / 0{collections.length}</p>
                 <h3 className="font-display text-[2.8rem] sm:text-6xl lg:text-7xl xl:text-[7rem] leading-[1] mt-2 md:mt-6 tracking-tight uppercase">
                   {c.name}
@@ -203,10 +208,10 @@ export function CollectionStage() {
               </div>
 
               {/* ─── IMAGE PRESENTATION ─── */}
-              <div className="relative w-full flex-1 md:h-[70vh] lg:h-[80vh] flex items-center justify-center md:justify-end md:pr-10 min-h-[30vh]">
+              <div className={`relative w-full flex-1 md:h-[70vh] lg:h-[80vh] flex items-center justify-center ${i % 2 === 0 ? "md:justify-end md:pr-10 md:order-2" : "md:justify-start md:pl-10 md:order-1"} min-h-[30vh]`}>
 
                 {/* Clean Editorial Image */}
-                <div className="image-wrap w-full max-w-[280px] sm:max-w-sm md:max-w-[420px] lg:max-w-[500px] aspect-[4/5] overflow-hidden relative z-10 shadow-xl">
+                <div className="image-wrap w-full max-w-[280px] sm:max-w-sm md:max-w-[420px] lg:max-w-[500px] aspect-[4/5] overflow-hidden rounded-3xl relative z-10 shadow-xl">
                   <img src={c.image} alt={`${c.name} Collection`} className="w-full h-full object-cover" />
                 </div>
 

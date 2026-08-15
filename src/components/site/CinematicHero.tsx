@@ -85,7 +85,7 @@ export function CinematicHero() {
         <div className="ch-cta">
           <Link 
             href="#discover" 
-            className="group inline-flex items-center gap-3 bg-white text-black px-8 py-4 md:px-10 md:py-4 text-[0.7rem] uppercase tracking-[0.2em] font-medium transition-colors duration-300 hover:bg-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
+            className="group inline-flex items-center gap-3 bg-transparent border border-white text-white px-8 py-4 md:px-10 md:py-4 text-[0.7rem] uppercase tracking-[0.2em] font-medium transition-colors duration-300 hover:bg-primary hover:border-primary hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
           >
             Discover Preethi
             <ArrowRight className="size-3.5 md:size-4 transition-transform duration-300 group-hover:translate-x-1" />

@@ -57,7 +57,7 @@ export function WhyPreethi() {
 
         {/* Content */}
         <div className="lg:col-span-7">
-          <p className="reveal eyebrow text-primary">02 — Why Preethi</p>
+          <p className="reveal eyebrow text-primary">Why Preethi</p>
           <h2 className="reveal mt-4 max-w-lg font-display text-4xl leading-[1.05] sm:text-5xl" data-delay="0.05">
             Four things we refuse to <span className="italic text-primary">compromise on</span>
           </h2>

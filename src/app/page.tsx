@@ -5,6 +5,7 @@ import { BrandStory } from "@/components/site/BrandStory";
 import { Collections } from "@/components/site/Collections";
 import { WhyPreethi } from "@/components/site/WhyPreethi";
 import { FeaturedCollections } from "@/components/site/FeaturedCollections";
+import { CustomerVoices } from "@/components/site/CustomerVoices";
 import { VisitPreethi } from "@/components/site/VisitPreethi";
 import { Footer } from "@/components/site/Footer";
 
@@ -32,6 +33,7 @@ export default function HomePage() {
         <Collections />
         <WhyPreethi />
         <FeaturedCollections />
+        <CustomerVoices />
         <VisitPreethi />
       </main>
       <Footer />
