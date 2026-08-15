@@ -87,16 +87,16 @@ export function CustomerVoices() {
             
             <div ref={quoteContainerRef} className="relative z-10 min-h-[200px] md:min-h-[250px] flex flex-col justify-center">
               <h3 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.2rem] leading-[1.2] tracking-tight text-foreground">
-                {activeReview.quote}
+                {activeReview?.quote}
               </h3>
               
               <div className="mt-10 md:mt-16 flex flex-col">
                 <span className="font-medium text-sm md:text-base tracking-[0.1em] uppercase text-foreground">
-                  &mdash; {activeReview.author}
+                  &mdash; {activeReview?.author}
                 </span>
-                {activeReview.location && (
+                {activeReview?.location && (
                   <span className="text-muted-foreground text-sm tracking-wider mt-1">
-                    {activeReview.location}
+                    {activeReview?.location}
                   </span>
                 )}
               </div>
