@@ -43,7 +43,6 @@ export function CollectionStage() {
       gsap.set(".panel:not(.panel-0)", { autoAlpha: 0 });
 
       function gotoIndex(index: number, direction: 1 | -1) {
-        console.log("[Collections] gotoIndex", index, "direction", direction);
         if (index < 0 || index >= collections.length) return;
         isTransitioning = true;
 
@@ -52,7 +51,6 @@ export function CollectionStage() {
 
         const tl = gsap.timeline({
           onComplete: () => {
-            console.log("[Collections] timeline onComplete");
             currentIndex = index;
             isTransitioning = false;
           }
@@ -94,7 +92,6 @@ export function CollectionStage() {
       }
 
       const handleIntent = (direction: 1 | -1) => {
-        console.log("[Collections] handleIntent", direction, "currentIndex", currentIndex, "isTransitioning", isTransitioning, "isActive", isCollectionActive);
         if (!isCollectionActive) return;
         if (isTransitioning) return;
 
@@ -103,7 +100,6 @@ export function CollectionStage() {
             gotoIndex(currentIndex + 1, 1);
           } else {
             // At last slide. Release the trap to allow scrolling down natively.
-            console.log("[Collections] Releasing downward scroll");
             isCollectionActive = false;
             intentObserver.disable();
           }
@@ -112,7 +108,6 @@ export function CollectionStage() {
             gotoIndex(currentIndex - 1, -1);
           } else {
             // At first slide. Release the trap to allow scrolling up natively.
-            console.log("[Collections] Releasing upward scroll");
             isCollectionActive = false;
             intentObserver.disable();
           }
@@ -126,11 +121,9 @@ export function CollectionStage() {
         tolerance: 30, // Prevents tiny trackpad movements from triggering a slide
         preventDefault: true, // Traps the scroll while inside the carousel
         onUp: () => {
-          console.log("[Collections] Observer onUp (Gesture UP)");
           handleIntent(-1);
         },
         onDown: () => {
-          console.log("[Collections] Observer onDown (Gesture DOWN)");
           handleIntent(1);
         }
       });
@@ -146,24 +139,18 @@ export function CollectionStage() {
         end: () =>
           `+=${window.innerHeight * collections.length}`,
         onEnter: (self) => {
-          console.log("[Collections] ScrollTrigger onEnter");
           isCollectionActive = true;
           intentObserver.enable();
-          console.log("[Collections] observer enabled");
         },
         onEnterBack: (self) => {
-          console.log("[Collections] ScrollTrigger onEnterBack");
           isCollectionActive = true;
           intentObserver.enable();
-          console.log("[Collections] observer enabled");
         },
         onLeave: () => {
-          console.log("[Collections] ScrollTrigger onLeave");
           isCollectionActive = false;
           intentObserver.disable();
         },
         onLeaveBack: () => {
-          console.log("[Collections] ScrollTrigger onLeaveBack");
           isCollectionActive = false;
           intentObserver.disable();
         }

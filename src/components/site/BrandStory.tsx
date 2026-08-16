@@ -1,5 +1,6 @@
 "use client";
-import { motion } from "motion/react";
+import { useRef } from "react";
+import { motion, useInView } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import heroPortrait from "@/assets/hero-portrait.jpg";
 import textureSilk from "@/assets/texture-silk.jpg";
@@ -9,22 +10,25 @@ import Link from "next/link";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function BrandStory() {
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const isImageInView = useInView(imageContainerRef, { once: true, margin: "0px 0px -50px 0px", amount: 0.05 });
+
   return (
     <section id="discover" className="relative overflow-hidden bg-background pt-24 md:pt-32">
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-10 px-6 pb-16 md:px-10 lg:grid-cols-12 lg:gap-6 lg:pb-24">
+      <div className="mx-auto flex flex-col lg:grid max-w-[1400px] gap-0 px-6 pb-16 md:px-10 lg:grid-cols-12 lg:gap-6 lg:pb-24">
         {/* Typography column */}
-        <div className="relative z-10 lg:col-span-6 lg:pt-16">
+        <div className="contents lg:block relative z-10 lg:col-span-6 lg:pt-16">
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, ease }}
-            className="eyebrow text-primary"
+            className="order-1 lg:order-none eyebrow text-primary"
           >
             A LEGACY BUILT ON SELECTION
           </motion.p>
 
-          <h2 className="mt-6 font-display text-[3.2rem] leading-[0.92] tracking-[-0.02em] sm:text-[4.2rem] lg:text-[5.2rem]">
+          <h2 className="order-2 lg:order-none mt-6 font-display text-[3.2rem] leading-[0.92] tracking-[-0.02em] sm:text-[4.2rem] lg:text-[5.2rem]">
             <span className="block overflow-hidden">
               <motion.span
                 className="block"
@@ -54,7 +58,7 @@ export function BrandStory() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 1, ease, delay: 0.5 }}
-            className="mt-8 max-w-md"
+            className="order-4 lg:order-none mt-10 lg:mt-8 max-w-md"
           >
             <p className="text-[0.98rem] leading-relaxed text-muted-foreground">
               A premier textile destination curating exceptional silk sarees, bridal weaves, and family fashion. We bring together the finest selections for those who appreciate quality, heritage, and an unhurried shopping experience.
@@ -71,15 +75,14 @@ export function BrandStory() {
             </div>
           </motion.div>
 
-          <ThreadLine className="mt-14 hidden h-10 w-full max-w-sm text-primary/40 lg:block" />
+          <ThreadLine className="order-5 lg:order-none mt-14 hidden h-10 w-full max-w-sm text-primary/40 lg:block" />
         </div>
 
         {/* Photography column */}
-        <div className="relative lg:col-span-6">
+        <div ref={imageContainerRef} className="order-3 lg:order-none relative lg:col-span-6 mt-9 mb-6 lg:mt-0 lg:mb-0">
           <motion.div
             initial={{ clipPath: "inset(0 0 100% 0)" }}
-            whileInView={{ clipPath: "inset(0 0 0% 0)" }}
-            viewport={{ once: true, margin: "-100px" }}
+            animate={{ clipPath: isImageInView ? "inset(0 0 0% 0)" : "inset(0 0 100% 0)" }}
             transition={{ duration: 1.3, ease, delay: 0.2 }}
             className="relative ml-auto w-full max-w-[560px] mask-arch overflow-hidden"
           >
