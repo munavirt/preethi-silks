@@ -135,7 +135,7 @@ export function CollectionStage() {
       let touchStartY = 0;
 
       const onTouchStart = (e: TouchEvent) => {
-        if (!isCollectionActive) return;
+        if (!isCollectionActive || !e.touches || !e.touches[0]) return;
         touchStartY = e.touches[0].clientY;
       };
 
@@ -147,7 +147,7 @@ export function CollectionStage() {
       };
 
       const onTouchEnd = (e: TouchEvent) => {
-        if (!isCollectionActive || isTransitioning) return;
+        if (!isCollectionActive || isTransitioning || !e.changedTouches || !e.changedTouches[0]) return;
         const touchEndY = e.changedTouches[0].clientY;
         const deltaY = touchStartY - touchEndY;
 
