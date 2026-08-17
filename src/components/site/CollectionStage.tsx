@@ -117,7 +117,7 @@ export function CollectionStage() {
       // Observer to detect meaningful scroll intent without scrubbing
       const intentObserver = Observer.create({
         target: window,
-        type: "wheel,touch",
+        type: "wheel",
         tolerance: 30, // Prevents tiny trackpad movements from triggering a slide
         preventDefault: true, // Traps the scroll while inside the carousel
         onUp: () => {
@@ -131,13 +131,46 @@ export function CollectionStage() {
       // Disabled initially; we only enable it when the section is perfectly pinned.
       intentObserver.disable();
 
+      // Reliable mobile touch/swipe detection
+      let touchStartY = 0;
+
+      const onTouchStart = (e: TouchEvent) => {
+        if (!isCollectionActive) return;
+        touchStartY = e.touches[0].clientY;
+      };
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (!isCollectionActive) return;
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      };
+
+      const onTouchEnd = (e: TouchEvent) => {
+        if (!isCollectionActive || isTransitioning) return;
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaY = touchStartY - touchEndY;
+
+        if (Math.abs(deltaY) > 40) {
+          if (deltaY > 0) {
+            handleIntent(1);
+          } else {
+            handleIntent(-1);
+          }
+        }
+      };
+
+      window.addEventListener("touchstart", onTouchStart, { passive: false });
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+      window.addEventListener("touchend", onTouchEnd, { passive: false });
+
       // Pin the section to the viewport.
       ScrollTrigger.create({
         trigger: containerRef.current,
         pin: ".stage-pin",
         start: "top top",
         end: () =>
-          `+=${window.innerHeight * collections.length}`,
+          `+=${(containerRef.current?.offsetHeight || window.innerHeight) * collections.length}`,
         onEnter: (self) => {
           isCollectionActive = true;
           intentObserver.enable();
@@ -155,6 +188,12 @@ export function CollectionStage() {
           intentObserver.disable();
         }
       });
+
+      return () => {
+        window.removeEventListener("touchstart", onTouchStart);
+        window.removeEventListener("touchmove", onTouchMove);
+        window.removeEventListener("touchend", onTouchEnd);
+      };
 
     }, containerRef);
 
